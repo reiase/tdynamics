@@ -27,47 +27,56 @@ class inspect:
         weight=None,
     ):
         linear(layer, input, name, weight)
-        
+
     @staticmethod
     def routing(x: torch.Tensor, topk, name=None):
         from sklearn.manifold import TSNE
+
         tsne = TSNE(n_components=2, perplexity=10)
         mapped = tsne.fit_transform(x.to(torch.float32).cpu())
-        plt.figure(figsize=(10,10))
+        plt.figure(figsize=(10, 10))
         plt.scatter(
-                mapped[:, 0],
-                mapped[:, 1],
-                c=topk[:,0].cpu(),
-                cmap="plasma",
-                alpha=0.5,
-                edgecolors="w",
-                linewidths=0.0
-            )
+            mapped[:, 0],
+            mapped[:, 1],
+            c=topk[:, 0].cpu(),
+            cmap="plasma",
+            alpha=0.5,
+            edgecolors="w",
+            linewidths=0.0,
+        )
         plt.show()
 
     @staticmethod
     def input(x: torch.Tensor, name=None):
-        if not isinstance(x, torch.Tensor): return
+        if not isinstance(x, torch.Tensor):
+            return
         if len(x.shape) == 3:
             x = x.squeeze(0)
-        norm = x.norm(dim=1,keepdim=True)
-        plt.figure(figsize=(20,3))
+        norm = x.norm(dim=1, keepdim=True)
+        plt.figure(figsize=(20, 3))
         print("===", norm.shape, torch.mm(x, x.T).shape)
         # plt.subplot(1,2,1)
-        plt.hist((torch.mm(x, x.T) / torch.mm(norm, norm.T)).to(torch.float32).cpu().flatten(), bins=100)
+        plt.hist(
+            (torch.mm(x, x.T) / torch.mm(norm, norm.T))
+            .to(torch.float32)
+            .cpu()
+            .flatten(),
+            bins=100,
+        )
         # plt.axhline(y=x.shape[0], color="red", linestyle="--", linewidth=2)
         plt.title(f"Inspecting {name} in Layer {LAYER_ITER}")
         # plt.subplot(1,2,2)
         # plt.hist(norm.to(torch.float32).cpu().flatten(), bins=20)
         plt.show()
-        
+
     @staticmethod
     def tokens(x: torch.Tensor, name=None, mapped=None, selected=None):
         from sklearn.manifold import TSNE
+
         if mapped is None:
             tsne = TSNE(n_components=2)
             mapped = tsne.fit_transform(x.to(torch.float32).cpu())
-        
+
         plt.figure(figsize=(10, 8))
         if mapped is not None:
             plt.scatter(
@@ -76,7 +85,7 @@ class inspect:
                 cmap="viridis",
                 alpha=0.3,
                 edgecolors="w",
-                linewidths=0.0
+                linewidths=0.0,
             )
         try:
             if selected is not None:
@@ -88,13 +97,13 @@ class inspect:
                     cmap="viridis",
                     alpha=0.7,
                     edgecolors="b",
-                    linewidths=0.5
+                    linewidths=0.5,
                 )
         except:
             pass
         plt.show()
         return mapped
-        
+
     # @staticmethod
     # def routing(logit, weight):
     #     plt.figure(figsize=(20,3))
@@ -127,7 +136,9 @@ class inspect:
 
         # calculate the activation, power and rho
         act = torch.matmul(input, weight.T).to(torch.float32)
-        power = torch.matmul(input_norm.T, weight_norm.unsqueeze(dim=0)).to(torch.float32)
+        power = torch.matmul(input_norm.T, weight_norm.unsqueeze(dim=0)).to(
+            torch.float32
+        )
         rho = (act.squeeze(dim=0) / power).to(torch.float32)
         weig = marchenko_pastur(weight)
 
@@ -139,7 +150,8 @@ class inspect:
                 L.hist(weight.flatten().cpu(), bins=100).title("w/ hist"),
                 L.plot(weig[1], weig[2], color="red", label="Marchenko-Pastur dist.")
                 .hist(weig[0], alpha=0.6, density=True, bins=100, label="eig dist.")
-                .title("weight eig. hist. vs Marchenko-Pastur dist.").legend(),
+                .title("weight eig. hist. vs Marchenko-Pastur dist.")
+                .legend(),
                 L.hist(act.flatten().cpu(), bins=100).title("act hist"),
                 L.hist(power.flatten().cpu(), bins=100).title("power hist"),
                 L.hist(rho.flatten().cpu(), bins=100).title("rho hist"),
@@ -259,7 +271,8 @@ class inspect:
                 ).title("i/ channel norm hist"),
                 L.plot(ieig[1], ieig[2], color="red", label="Marchenko-Pastur dist.")
                 .hist(ieig[0], alpha=0.6, density=True, bins=100, label="eig dist.")
-                .title("input eig. hist. vs Marchenko-Pastur dist.").legend(),
+                .title("input eig. hist. vs Marchenko-Pastur dist.")
+                .legend(),
                 # L.hist(ieig.to(torch.float32).cpu(), bins=100).title("i/ eigs hist"),
             ],
             [
@@ -309,7 +322,8 @@ class inspect:
                 .title("act vs rho"),
                 L.plot(weig[1], weig[2], color="red", label="Marchenko-Pastur dist.")
                 .hist(weig[0], alpha=0.6, density=True, bins=100, label="eig dist.")
-                .title("weight eig. hist. vs Marchenko-Pastur dist.").legend(),
+                .title("weight eig. hist. vs Marchenko-Pastur dist.")
+                .legend(),
                 # L.hist(weig.to(torch.float32).cpu(), bins=100).title("w/ eigs hist"),
             ],
             [

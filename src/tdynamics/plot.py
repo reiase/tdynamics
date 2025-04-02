@@ -2,6 +2,7 @@ from .step import layer, step
 
 import matplotlib.pyplot as plt
 
+
 class DelayedCall:
     def __init__(self, fn):
         self.fn = fn
@@ -38,14 +39,17 @@ class DelayedCall:
             print("\tArguments:", self.args)
             print("\tKeyword Arguments:", self.kwargs)
 
+
 class _lazy:
     def __getattr__(self, name):
         plt_attr = getattr(plt, name)
         if callable(plt_attr):
             return DelayedCall(plt_attr)
         return plt_attr
-    
+
+
 LazyPlot = _lazy()
+
 
 def plot(figs, width=3, height=2, title=None):
     rows = len(figs)
@@ -56,7 +60,7 @@ def plot(figs, width=3, height=2, title=None):
             kwargs = {"projection": "polar"} if plot.polar else {}
             plt.subplot(rows, cols, i * cols + j + 1, **kwargs)
             plot.run()
-            
+
     fig.suptitle(f"{title} for layer {layer()}, step {step()}")
     plt.tight_layout()
     plt.show()
